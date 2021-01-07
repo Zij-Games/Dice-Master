@@ -15,8 +15,6 @@ static ROLL: &str = "!roll";
 
 //REPLIES
 static HELP_REPLY: &str = "
-Hello human,
-
 Current commands:
  => !help - Sends this message into the room where this was called
  => !roll - You provide a series of dice, and the roll with be done for you
@@ -110,7 +108,9 @@ impl Handler {
 impl EventHandler for Handler {
     async fn message(&self, context: Context, msg: Message) {
         if msg.content.starts_with(HELP) {
-            let _ = msg.channel_id.say(&context.http, HELP_REPLY); 
+            if let Err(why) = msg.channel_id.say(&context.http, HELP_REPLY).await {
+                println!("Unable to send message: {}", why);
+            }
         }
         else if msg.content.starts_with(ROLL) {
             let response = match Handler::compute_result(msg.content) {
