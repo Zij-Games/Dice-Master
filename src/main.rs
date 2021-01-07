@@ -16,14 +16,18 @@ static ROLL: &str = "!roll";
 //REPLIES
 static HELP_REPLY: &str = "
 Current commands:
- => !help - Sends this message into the room where this was called
- => !roll - You provide a series of dice, and the roll with be done for you
-    -> Example: !roll 2d6 + 1d8 - 2
+ -> !help - Sends this message into the room where this was called
+
+ -> !roll - You provide a series of dice, and the roll with be done for you!
+    => Example: !roll 2d6 + 1d8 - 2
+    => You must specify the number of dice to be rolled. !roll d6 + 2 will fail as a 1 is missing.
 
 Details:
- => This bot is even in the personal chat between you and the DM. This means that if you need to roll for something hidden you can!
- => You should always receive feedback regarding the roll. This means either it succeeds and you see the result, or it fails and you get told to try again.
- => If you encounter what you believe is a bug, dm Elijah.
+ -> This bot is even in the personal chat between you and the DM. This means that if you need to roll for something hidden you can!
+
+ -> You should always receive feedback from the bot if you used a command. If not, DM Elijah about it.
+
+ -> Otherwise, if you encounter what you believe is a bug, dm Elijah.
 ";
 
 static INVALID_REPLY: &str = "Invalid input. Please try again";
