@@ -36,38 +36,37 @@ static INVALID_REPLY: &str = "Invalid input. Please try again";
 struct Handler;
 
 impl Handler {
-    fn compute_result(msg : String) -> Result<String, &'static str> {
-            let parsed_message = msg
-                .strip_prefix(ROLL)
-                .unwrap()
-                .trim()
-                .split(' ')
-                .collect::<Vec<_>>();
+    fn compute_result(msg: String) -> Result<String, &'static str> {
+        let parsed_message = msg
+            .strip_prefix(ROLL)
+            .unwrap()
+            .trim()
+            .split(' ')
+            .collect::<Vec<_>>();
 
-            let mut dice_rolls = vec![];
-            let mut ops = vec![];
+        let mut dice_rolls = vec![];
+        let mut ops = vec![];
 
-            for comp in parsed_message {
-                if comp == "+" || comp == "-" {
-                    ops.push(comp);
-                }
-                else {
-                    let die_res = Handler::roll_dice(comp)?;
-                    dice_rolls.push(die_res);
-                }
+        for comp in parsed_message {
+            if comp == "+" || comp == "-" {
+                ops.push(comp);
+            } else {
+                let die_res = Handler::roll_dice(comp)?;
+                dice_rolls.push(die_res);
             }
+        }
 
-            Ok(Handler::formulate_result(&dice_rolls, &ops))
+        Ok(Handler::formulate_result(&dice_rolls, &ops))
     }
-    
-    fn roll_dice(message : &str) -> Result<Vec<usize>, &'static str> {
+
+    fn roll_dice(message: &str) -> Result<Vec<usize>, &'static str> {
         let nums = message
             .split('d')
             .map(|num| num.parse::<usize>())
             .collect::<Vec<_>>();
-        
-        if nums.iter().any(|x| x.is_err()) { 
-            return Err(INVALID_REPLY); 
+
+        if nums.iter().any(|x| x.is_err()) {
+            return Err(INVALID_REPLY);
         }
 
         match nums.len() {
@@ -77,28 +76,40 @@ impl Handler {
                     ans.push(rand::thread_rng().gen_range(1..=*nums[1].as_ref().unwrap()));
                 }
                 Ok(ans)
-            }, 
+            }
             1 => Ok(vec![*nums[0].as_ref().unwrap()]),
             _ => Err(INVALID_REPLY),
         }
     }
 
-    fn formulate_result(rolls : &[Vec<usize>], ops : &[&str]) -> String {
+    fn formulate_result(rolls: &[Vec<usize>], ops: &[&str]) -> String {
         let mut ans = String::new();
-        let mut sum : i32 = 0;
+        let mut sum: i32 = 0;
 
         for (i, vec) in rolls.iter().enumerate() {
             let sign = match ops.get(i.overflowing_sub(1).0) {
-                Some(&"+") => { ans.push_str(" + "); "+" },
-                Some(&"-") => { ans.push_str(" - "); "-" },
+                Some(&"+") => {
+                    ans.push_str(" + ");
+                    "+"
+                }
+                Some(&"-") => {
+                    ans.push_str(" - ");
+                    "-"
+                }
                 _ => "+",
             };
 
             ans.push('(');
             for (j, num) in vec.iter().enumerate() {
                 ans.push_str(&num.to_string());
-                if j != vec.len() - 1 { ans.push_str(" + "); }
-                sum = if sign == "-" { sum - *num as i32 } else { sum + *num as i32 };
+                if j != vec.len() - 1 {
+                    ans.push_str(" + ");
+                }
+                sum = if sign == "-" {
+                    sum - *num as i32
+                } else {
+                    sum + *num as i32
+                };
             }
             ans.push(')');
         }
@@ -115,19 +126,14 @@ impl EventHandler for Handler {
             if let Err(why) = msg.channel_id.say(&context.http, HELP_REPLY).await {
                 println!("Unable to send message: {}", why);
             }
-        }
-        else if msg.content.starts_with(ROLL) {
+        } else if msg.content.starts_with(ROLL) {
             let response = match Handler::compute_result(msg.content) {
-                Ok(result) => {
-                    MessageBuilder::new()
-                        .push_bold_safe(&msg.author.name)
-                        .push(" rolled: \n")
-                        .push(&result)
-                        .build()
-                },
-                Err(e) => {
-                    e.to_string()
-                },
+                Ok(result) => MessageBuilder::new()
+                    .push_bold_safe(&msg.author.name)
+                    .push(" rolled: \n")
+                    .push(&result)
+                    .build(),
+                Err(e) => e.to_string(),
             };
 
             if let Err(why) = msg.channel_id.say(&context.http, &response).await {
@@ -139,13 +145,11 @@ impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
     }
-
 }
 
 #[tokio::main]
 async fn main() {
-    let token = env::var("DISCORD_TOKEN")
-        .expect("Expected a token in the environment");
+    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     let mut client = Client::builder(&token)
         .event_handler(Handler)
         .await
